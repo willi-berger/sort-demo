@@ -14,7 +14,7 @@ const SortDemo = function(canvas) {
     const MARGIN_TOP = 20;
     const MARGIN_SIDE = 10;
 
-    const N_ITEMS = 20;
+    const N_ITEMS = 50;
     const MAX_VALUE = 100;
 
     const TIME_STEP_MS = 250;
@@ -37,15 +37,16 @@ const SortDemo = function(canvas) {
         this.higlight = 0;
 
         this.stroke = function(i) {
+            ctx.save();
             ctx.beginPath();
-            let strokeStyle = ctx.strokeStyle;
+            ctx.lineWidth = 3;
             if (this.higlight == 1) {
-                ctx.strokeStyle = 'red';
+                ctx.strokeStyle = 'green';
             }
             ctx.moveTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM)
             ctx.lineTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM + this.value / MAX_VALUE * lineFieldheigt)            
             ctx.stroke()
-            ctx.strokeStyle = strokeStyle;
+            ctx.restore();
         }
     }
 
@@ -54,7 +55,6 @@ const SortDemo = function(canvas) {
     ctx.scale(1 , -1);
 	
     // initialize items to sort
-
     for(let i = 0; i < N_ITEMS; i++) {
         this.items.push(new Item(Math.floor(Math.random() * MAX_VALUE), i));
     }
@@ -62,18 +62,29 @@ const SortDemo = function(canvas) {
 
     
 
+    /**
+     * draw all
+     */
 	this.stroke = function() {
 
+        // draw items
+        this.items.forEach((item, i) => item.stroke(i))
+
         // base line
+        ctx.save();
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(MARGIN_SIDE, MARGIN_BOTTOM);
         ctx.lineTo(CW - MARGIN_SIDE, MARGIN_BOTTOM)
         ctx.stroke()
-        // draw items
-        this.items.forEach((item, i) => item.stroke(i))
-        ctx.stroke();
+        ctx.restore();
 	}
 
+    /**
+     * Generator for the selction sort demo
+     *  
+     * @param {SortDemo} self 
+     */
     this.selectionSort = function* (self) {
 
         for (let i = 0; i < N_ITEMS; i++) {
@@ -82,6 +93,8 @@ const SortDemo = function(canvas) {
             self.items[i].higlight = 1;
             yield "hello";
         }
+
+        yield 'finished'
     }
 
     /**
@@ -115,8 +128,5 @@ const SortDemo = function(canvas) {
 
 $(document).ready(function () {
     var canvas = $("#canvas")[0]
-    /** @type {SortDemo} **/
-    var sortDemo = new SortDemo(canvas);
-
-    sortDemo.start();
+    new SortDemo(canvas).start();
 })
