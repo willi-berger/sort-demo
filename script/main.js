@@ -1,4 +1,24 @@
 
+   
+/**
+ * 
+ * @param {number} value 
+ * @param {number} index 
+ */
+const Item = function(value, index) {
+    this.value = value;
+    this.index = index;
+    this.state = 0;
+
+    /**
+     * 
+     * @param {Item} another 
+     * @returns number
+     */
+    this.compareTo = function(another) {
+        return this.value === another.value ? 0 : this.value < another.value ? -1 : 1;
+    }
+}
 
 /**
  * @param {CanvasRenderingContext2D} canvas 
@@ -24,42 +44,6 @@ const SortDemo = function(canvas) {
 
     this.items = []
 
-    
-    /**
-     * 
-     * @param {number} value 
-     * @param {number} index 
-     */
-    const Item = function(value, index) {
-        this.value = value;
-        this.index = index;
-        this.state = 0;
-
-        this.stroke = function(i) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.lineWidth = 3;
-            switch (this.state) {
-                case 'compare':
-                    ctx.strokeStyle = 'yellow';
-                    break;
-                case 'current_min':
-                    ctx.strokeStyle = 'blue';
-                    break;
-                case 'done':
-                    ctx.strokeStyle = 'green';
-                    break;
-                default:
-                    ctx.strokeStyle = 'black';
-                    break;
-            }
-
-            ctx.moveTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM)
-            ctx.lineTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM + this.value / MAX_VALUE * lineFieldheigt)            
-            ctx.stroke()
-            ctx.restore();
-        }
-    }
 
     // we want (0,0) to be in the lower left corner and y coords from bottom to up
     ctx.translate(0, CH)
@@ -74,15 +58,38 @@ const SortDemo = function(canvas) {
     console.log(this.items)
 
     
+    this.strokeItem = function(item, i) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.lineWidth = 3;
+        switch (item.state) {
+            case 'compare':
+                ctx.strokeStyle = 'yellow';
+                break;
+            case 'current_min':
+                ctx.strokeStyle = 'blue';
+                break;
+            case 'done':
+                ctx.strokeStyle = 'green';
+                break;
+            default:
+                ctx.strokeStyle = 'black';
+                break;
+        }
+
+        ctx.moveTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM)
+        ctx.lineTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM + item.value / MAX_VALUE * lineFieldheigt)            
+        ctx.stroke()
+        ctx.restore();
+    }
 
     /**
      * draw all
      */
 	this.stroke = function() {
-
-        console.log('stroke')
+        console.debug('stroke')
         // draw items
-        this.items.forEach((item, i) => item.stroke(i))
+        this.items.forEach((item, i) => this.strokeItem(item, i))
 
         // base line
         ctx.save();
@@ -94,42 +101,7 @@ const SortDemo = function(canvas) {
         ctx.restore();
 	}
 
-    /**
-     * Generator for the selction sort demo
-     *  
-     * @param {SortDemo} self 
-     */
-    this.selectionSort = function* (self) {
 
-        let i = 0;
-        let j = 0;
-        for (i = 0; i < N_ITEMS - 1; i++) {
-            let current_min_index = i;
-            self.items[i].state = 'compare';
-
-            for (j = i + 1; j < N_ITEMS; j++ ) {
-                console.log(`i = ${i} j = ${j}`);
-                self.items[j].state = 'compare';
-                yield {'op': 'compare', 'items': [i, j]}
-
-                if (this.items[j].value < this.items[current_min_index].value) {
-                    console.debug(`new min: index ${j} value ${this.items[j].value}`)
-                    this.items[current_min_index].state = 'default'
-                    current_min_index = j;
-                    this.items[j].state = 'current_min';
-                } else {
-                    this.items[j].state = 'default';
-                }
-            } 
-
-            if (i != current_min_index) {
-                [this.items[i], this.items[current_min_index]] = [this.items[current_min_index], this.items[i]];
-            }
-            this.items[i].state = 'done';
-            yield {'op': 'swap', 'items': [i, j]}
-
-        }
-    }
 
     /**
      * 
@@ -137,7 +109,6 @@ const SortDemo = function(canvas) {
      * @param {Generator} generator 
      */
     this.runAnimation = function(self, generator) {
-        console.log('animatiionstep step')
         ctx.clearRect(0, 0, CW, CH);
         self.stroke();
 
@@ -145,21 +116,59 @@ const SortDemo = function(canvas) {
         let value = res.value;
         
         if (!res.done) {
-            console.debug(`generator res: op: ${value.op}, items ${value.items}`)
+            console.log(`generator res: op: ${value.op}, items ${value.items}`)
             timerId = setTimeout(self.runAnimation, TIME_STEP_MS, self, generator);
         } else {
             console.info('Finished');
         }
     }
 
-    this.start = function() {
-        generator = this.selectionSort(this);
-        this.runAnimation(this, generator);
+    this.start = function(generator) {
+        this.runAnimation(this, generator(this.items));
     }
 	
 }
 
+
+/**
+ * Generator for the selction sort demo
+ * @param {Array} items 
+ */
+selectionSort = function* (items) {
+
+    let i = 0;
+    let j = 0;
+    for (i = 0; i < items.length - 1; i++) {
+        let current_min_index = i;
+        items[i].state = 'compare';
+
+        for (j = i + 1; j < items.length; j++ ) {
+            console.log(`i = ${i} j = ${j}`);
+            items[j].state = 'compare';
+            yield {'op': 'compare', 'items': [i, j]}
+
+            if (items[j].compareTo(items[current_min_index]) <= 0) {
+                console.debug(`new min: index ${j} value ${items[j].value}`)
+                items[current_min_index].state = 'default'
+                current_min_index = j;
+                items[j].state = 'current_min';
+            } else {
+                items[j].state = 'default';
+            }
+        } 
+
+        if (i != current_min_index) {
+            [items[i], items[current_min_index]] = [items[current_min_index], items[i]];
+        }
+        
+        items[i].state = 'done';
+        yield {'op': 'swap', 'items': [i, current_min_index]}
+
+    }
+}
+
 $(document).ready(function () {
     var canvas = $("#canvas")[0]
-    new SortDemo(canvas).start();
+    new SortDemo(canvas).start(selectionSort);
+
 })
