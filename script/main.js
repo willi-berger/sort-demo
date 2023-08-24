@@ -63,6 +63,9 @@ const SortDemo = function(canvas) {
         ctx.beginPath();
         ctx.lineWidth = 3;
         switch (item.state) {
+            case 'swap':
+                ctx.strokeStyle = 'cyan';
+                break;                
             case 'compare':
                 ctx.strokeStyle = 'yellow';
                 break;
@@ -143,7 +146,7 @@ selectionSort = function* (items) {
         items[i].state = 'compare';
 
         for (j = i + 1; j < items.length; j++ ) {
-            console.log(`i = ${i} j = ${j}`);
+            console.debug(`i = ${i} j = ${j}`);
             items[j].state = 'compare';
             yield {'op': 'compare', 'items': [i, j]}
 
@@ -160,15 +163,47 @@ selectionSort = function* (items) {
         if (i != current_min_index) {
             [items[i], items[current_min_index]] = [items[current_min_index], items[i]];
         }
-        
+
         items[i].state = 'done';
         yield {'op': 'swap', 'items': [i, current_min_index]}
+    }
+}
 
+
+/**
+ * 
+ * @param {Array} items 
+ */
+const insertionSort = function* (items) {
+
+    const N_ITEMS = items.length;
+
+    for (let i = 1; i < N_ITEMS; i++) {
+        
+        for (let j = i; j > 0; j--) {
+            console.debug(`i = ${i} j = ${j}`);
+            items[j].state = 'compare';
+            items[j-1].state = 'compare';
+            yield {'op': 'compare', 'items': [j, j-1]};
+
+            if (items[j].compareTo(items[j-1]) <= 0) {
+                items[j].state = 'swap';
+                items[j-1].state = 'swap';
+                [items[j], items[j-1]] = [items[j-1], items[j]];
+                yield {'op': 'swap', 'items': [j-1, j]};
+                items[j].state = 'default';
+                items[j-1].state = 'default';
+            } else {
+                items[j].state = 'default';
+                items[j-1].state = 'default';
+                yield {'op': 'break', 'items': [j-1, j]}
+                break;
+            }
+        }
     }
 }
 
 $(document).ready(function () {
     var canvas = $("#canvas")[0]
-    new SortDemo(canvas).start(selectionSort);
-
+    new SortDemo(canvas).start(insertionSort);
 })
