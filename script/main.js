@@ -1,7 +1,8 @@
-
+const N_ITEMS = 80;
+const MAX_VALUE = 100;
    
 /**
- * 
+ *  
  * @param {number} value 
  * @param {number} index 
  */
@@ -11,14 +12,14 @@ const Item = function(value, index) {
     this.state = 0;
 
     /**
-     * 
+     *  
      * @param {Item} another 
      * @returns number
      */
     this.compareTo = function(another) {
         return this.value === another.value ? 0 : this.value < another.value ? -1 : 1;
-    }
-}
+    }    
+}    
 
 /**
  * @param {CanvasRenderingContext2D} canvas 
@@ -33,9 +34,6 @@ const SortDemo = function(canvas) {
     const MARGIN_TOP = 20;
     const MARGIN_SIDE = 10;
 
-    const N_ITEMS = 50;
-    const MAX_VALUE = 100;
-
     const TIME_STEP_MS = 50;
 
     const baseLineLength = CW - 2 * MARGIN_SIDE;
@@ -44,19 +42,20 @@ const SortDemo = function(canvas) {
 
     this.items = []
 
-
     // we want (0,0) to be in the lower left corner and y coords from bottom to up
     ctx.translate(0, CH)
     ctx.scale(1 , -1);
-	
-    // initialize items to sort
-    let min = 10
-    let max = MAX_VALUE - 10
-    for(let i = 0; i < N_ITEMS; i++) {
-        this.items.push(new Item(Math.floor(Math.random() * max) + min, i));
-    }
-    console.log(this.items)
 
+	/**
+     * 
+     * @param {*} items 
+     * @returns SortDemo
+     */
+    this.setItemsToSort = function(items) {
+        items.forEach(item => this.items.push(new Item(item, 0)));
+
+        return this;
+    }
     
     this.strokeItem = function(item, i) {
         ctx.save();
@@ -103,8 +102,6 @@ const SortDemo = function(canvas) {
         ctx.stroke()
         ctx.restore();
 	}
-
-
 
     /**
      * 
@@ -205,8 +202,18 @@ const insertionSort = function* (items) {
 }
 
 $(document).ready(function () {
+
+    // initialize items to sort
+    var items = [];
+    let min = 10
+    let max = MAX_VALUE - 10
+    for(let i = 0; i < N_ITEMS; i++) {
+        items.push(Math.floor(Math.random() * max) + min);
+    }
+    console.log(items)
+   
     var canvas = $("#canvas0")[0]
-    new SortDemo(canvas).start(selectionSort);
+    new SortDemo(canvas).setItemsToSort(items).start(selectionSort);
     var canvas = $("#canvas1")[0]
-    new SortDemo(canvas).start(insertionSort);
+    new SortDemo(canvas).setItemsToSort(items).start(insertionSort);
 })
