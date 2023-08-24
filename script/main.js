@@ -137,7 +137,7 @@ const SortDemo = function(canvas) {
  * Generator for the selction sort demo
  * @param {Array} items 
  */
-selectionSort = function* (items) {
+const selectionSort = function* (items) {
 
     let i = 0;
     let j = 0;
@@ -171,6 +171,7 @@ selectionSort = function* (items) {
 
 
 /**
+ * Generator for the insertion sort demo
  * 
  * @param {Array} items 
  */
@@ -204,6 +205,8 @@ const insertionSort = function* (items) {
 }
 
 $(document).ready(function () {
-    var canvas = $("#canvas")[0]
+    var canvas = $("#canvas0")[0]
+    new SortDemo(canvas).start(selectionSort);
+    var canvas = $("#canvas1")[0]
     new SortDemo(canvas).start(insertionSort);
 })
