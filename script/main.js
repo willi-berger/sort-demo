@@ -1,8 +1,8 @@
 const N_ITEMS = 80;
 const MAX_VALUE = 100;
-   
+  
 /**
- *  
+ * 
  * @param {number} value 
  * @param {number} index 
  */
@@ -12,14 +12,14 @@ const Item = function(value, index) {
     this.state = 0;
 
     /**
-     *  
+     * 
      * @param {Item} another 
      * @returns number
      */
     this.compareTo = function(another) {
         return this.value === another.value ? 0 : this.value < another.value ? -1 : 1;
-    }    
-}    
+    }   
+}   
 
 /**
  * @param {CanvasRenderingContext2D} canvas 
@@ -64,7 +64,7 @@ const SortDemo = function(canvas) {
         switch (item.state) {
             case 'swap':
                 ctx.strokeStyle = 'cyan';
-                break;                
+                break;               
             case 'compare':
                 ctx.strokeStyle = 'yellow';
                 break;
@@ -80,7 +80,7 @@ const SortDemo = function(canvas) {
         }
 
         ctx.moveTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM)
-        ctx.lineTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM + item.value / MAX_VALUE * lineFieldheigt)            
+        ctx.lineTo(MARGIN_SIDE + i*itemFieldWidth + itemFieldWidth/2, MARGIN_BOTTOM + item.value / MAX_VALUE * lineFieldheigt)           
         ctx.stroke()
         ctx.restore();
     }
@@ -201,6 +201,35 @@ const insertionSort = function* (items) {
     }
 }
 
+/**
+ * Generator for Bubble Sort
+ * @param {Array} items 
+ */
+const bubbleSort = function* (items) {
+    const n = items.length;
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            items[j].state = 'compare';
+            items[j + 1].state = 'compare';
+            yield { 'op': 'compare', 'items': [j, j + 1] };
+
+            if (items[j].compareTo(items[j + 1]) > 0) {
+                items[j].state = 'swap';
+                items[j + 1].state = 'swap';
+                [items[j], items[j + 1]] = [items[j + 1], items[j]];
+                yield { 'op': 'swap', 'items': [j, j + 1] };
+                items[j].state = 'default';
+                items[j + 1].state = 'default';
+            } else {
+                items[j].state = 'default';
+                items[j + 1].state = 'default';
+            }
+        }
+        // Markiere das letzte (sortierte) Element als "done"
+        items[n - i - 1].state = 'done';
+    }
+};
+
 $(document).ready(function () {
 
     // initialize items to sort
@@ -211,9 +240,11 @@ $(document).ready(function () {
         items.push(Math.floor(Math.random() * max) + min);
     }
     console.log(items)
-   
+  
     var canvas = $("#canvas0")[0]
     new SortDemo(canvas).setItemsToSort(items).start(selectionSort);
     var canvas = $("#canvas1")[0]
     new SortDemo(canvas).setItemsToSort(items).start(insertionSort);
+    var canvas = $("#canvas2")[0]
+    new SortDemo(canvas).setItemsToSort(items).start(bubbleSort);
 })
