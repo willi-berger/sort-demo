@@ -116,8 +116,7 @@ const SortDemo = function(canvas) {
         let value = res.value;
         
         if (!res.done) {
-            console.log(`generator res: op: ${value.op}, items ${value.items}`)
-            timerId = setTimeout(self.runAnimation, TIME_STEP_MS, self, generator);
+            requestAnimationFrame(() => self.runAnimation(self, generator));
         } else {
             console.info('Finished');
         }
@@ -128,7 +127,6 @@ const SortDemo = function(canvas) {
     }
 	
 }
-
 
 /**
  * Generator for the selction sort demo
@@ -166,18 +164,13 @@ const selectionSort = function* (items) {
     }
 }
 
-
 /**
  * Generator for the insertion sort demo
- * 
  * @param {Array} items 
  */
 const insertionSort = function* (items) {
-
     const N_ITEMS = items.length;
-
     for (let i = 1; i < N_ITEMS; i++) {
-        
         for (let j = i; j > 0; j--) {
             console.debug(`i = ${i} j = ${j}`);
             items[j].state = 'compare';
@@ -230,8 +223,7 @@ const bubbleSort = function* (items) {
     }
 };
 
-$(document).ready(function () {
-
+document.addEventListener('DOMContentLoaded', function () {
     // initialize items to sort
     var items = [];
     let min = 10
@@ -241,10 +233,11 @@ $(document).ready(function () {
     }
     console.log(items)
   
-    var canvas = $("#canvas0")[0]
-    new SortDemo(canvas).setItemsToSort(items).start(selectionSort);
-    var canvas = $("#canvas1")[0]
-    new SortDemo(canvas).setItemsToSort(items).start(insertionSort);
-    var canvas = $("#canvas2")[0]
-    new SortDemo(canvas).setItemsToSort(items).start(bubbleSort);
+    var canvas0 = document.getElementById('canvas0');
+    new SortDemo(canvas0).setItemsToSort(items).start(selectionSort);
+    var canvas1 = document.getElementById('canvas1');
+    new SortDemo(canvas1).setItemsToSort(items).start(insertionSort);
+    var canvas2 = document.getElementById('canvas2');
+    new SortDemo(canvas2).setItemsToSort(items).start(bubbleSort);
 })
+
